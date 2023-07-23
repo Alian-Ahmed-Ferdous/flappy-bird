@@ -1,0 +1,23 @@
+{
+  "name": "tic-tac-toe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alian-Ahmed-Ferdous/snake-game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Alian-Ahmed-Ferdous/snake-game/issues"
+  },
+  "homepage": "https://github.com/Alian-Ahmed-Ferdous/snake-game#readme",
+  "devDependencies": {
+    "electron": "^25.3.1"
+  }
+}
