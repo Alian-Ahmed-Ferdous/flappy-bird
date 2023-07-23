@@ -1,4 +1,3 @@
-
 //board
 let board;
 let boardWidth = 360;
@@ -29,6 +28,18 @@ let velocityX = -2; //pipes moving left speed
 let velocityY = 0; //bird jump speed
 let gravity = 0.4;
 
+// Additional variable for down arrow key handling
+let downKeyPressed = false;
+const downKey = "ArrowDown";
+
+// Enemies
+let enemyArray = [];
+let enemyWidth = 40;
+let enemyHeight = 40;
+let enemyX = boardWidth;
+let enemyY = boardHeight / 2;
+let enemySpeed = -3;
+
 let gameOver = false;
 let score = 0;
 
@@ -40,7 +51,10 @@ window.onload = function () {
 
     requestAnimationFrame(update);
     setInterval(placePipes, 1500); //every 1.5 seconds
+    setInterval(placeEnemy, 3000); //every 3 seconds
     document.addEventListener("keydown", moveBird);
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keyup", handleKeyUp);
 }
 
 function update() {
@@ -80,6 +94,18 @@ function update() {
     //clear pipes
     while (pipeArray.length > 0 && pipeArray[0].x < -pipeWidth) {
         pipeArray.shift(); //removes the first element from the array
+    }
+
+    // Update and draw enemies
+    updateEnemies();
+    context.fillStyle = "blue";
+    for (let i = 0; i < enemyArray.length; i++) {
+        let enemy = enemyArray[i];
+        context.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+
+        if (detectCollision(bird, enemy)) {
+            gameOver = true;
+        }
     }
 
     //score
@@ -122,6 +148,32 @@ function placePipes() {
     pipeArray.push(bottomPipe);
 }
 
+function placeEnemy() {
+    if (gameOver) {
+        return;
+    }
+
+    let randomEnemyY = Math.random() * (boardHeight - enemyHeight);
+    let enemy = {
+        x: enemyX,
+        y: randomEnemyY,
+        width: enemyWidth,
+        height: enemyHeight
+    };
+    enemyArray.push(enemy);
+}
+
+function updateEnemies() {
+    for (let i = 0; i < enemyArray.length; i++) {
+        let enemy = enemyArray[i];
+        enemy.x += enemySpeed;
+    }
+
+    while (enemyArray.length > 0 && enemyArray[0].x + enemyWidth < 0) {
+        enemyArray.shift();
+    }
+}
+
 function moveBird(e) {
     if (e.code == "Space" || e.code == "ArrowUp" || e.code == "KeyX") {
         //jump
@@ -131,9 +183,23 @@ function moveBird(e) {
         if (gameOver) {
             bird.y = birdY;
             pipeArray = [];
+            enemyArray = [];
             score = 0;
             gameOver = false;
         }
+    }
+}
+
+function handleKeyDown(e) {
+    if (e.code === downKey && !downKeyPressed) {
+        velocityY += 1.5; // Increase the falling speed
+        downKeyPressed = true;
+    }
+}
+
+function handleKeyUp(e) {
+    if (e.code === downKey) {
+        downKeyPressed = false;
     }
 }
 
