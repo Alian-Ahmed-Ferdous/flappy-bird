@@ -40,6 +40,15 @@ let enemyX = boardWidth;
 let enemyY = boardHeight / 2;
 let enemySpeed = -3;
 
+// Additional variable for shooting
+let bulletArray = [];
+let bulletWidth = 10;
+let bulletHeight = 4;
+let bulletSpeed = 5;
+
+// Timer interval for automatic bullet firing (milliseconds)
+let bulletTimerInterval = 300; // 0.3 second
+
 let gameOver = false;
 let score = 0;
 
@@ -52,6 +61,7 @@ window.onload = function () {
     requestAnimationFrame(update);
     setInterval(placePipes, 1500); //every 1.5 seconds
     setInterval(placeEnemy, 3000); //every 3 seconds
+    setInterval(autoShoot, bulletTimerInterval); //automatically shoot bullets
     document.addEventListener("keydown", moveBird);
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("keyup", handleKeyUp);
@@ -108,6 +118,14 @@ function update() {
         }
     }
 
+    // Update and draw bullets
+    updateBullets();
+    context.fillStyle = "black";
+    for (let i = 0; i < bulletArray.length; i++) {
+        let bullet = bulletArray[i];
+        context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+    }
+
     //score
     context.fillStyle = "white";
     context.font = "45px sans-serif";
@@ -127,7 +145,9 @@ function placePipes() {
     // 0 -> -128 (pipeHeight/4)
     // 1 -> -128 - 256 (pipeHeight/4 - pipeHeight/2) = -3/4 pipeHeight
     let randomPipeY = pipeY - pipeHeight / 4 - Math.random() * (pipeHeight / 2);
-    let openingSpace = board.height / 4;
+
+    // Increase the space between the pipes
+    let openingSpace = board.height / 3;
 
     let topPipe = {
         x: pipeX,
@@ -184,6 +204,7 @@ function moveBird(e) {
             bird.y = birdY;
             pipeArray = [];
             enemyArray = [];
+            bulletArray = [];
             score = 0;
             gameOver = false;
         }
@@ -200,6 +221,48 @@ function handleKeyDown(e) {
 function handleKeyUp(e) {
     if (e.code === downKey) {
         downKeyPressed = false;
+    }
+}
+
+function autoShoot() {
+    if (!gameOver) {
+        shootBullet();
+    }
+}
+
+function shootBullet() {
+    let bullet = {
+        x: bird.x + bird.width,
+        y: bird.y + bird.height / 2 - bulletHeight / 2,
+        width: bulletWidth,
+        height: bulletHeight
+    };
+    bulletArray.push(bullet);
+}
+
+function updateBullets() {
+    for (let i = 0; i < bulletArray.length; i++) {
+        let bullet = bulletArray[i];
+        bullet.x += bulletSpeed;
+
+        // Check for collision with enemies
+        for (let j = 0; j < enemyArray.length; j++) {
+            let enemy = enemyArray[j];
+            if (detectCollision(bullet, enemy)) {
+                // Remove the bullet and enemy on collision
+                bulletArray.splice(i, 1);
+                enemyArray.splice(j, 1);
+                i--; // Adjust index after removing the bullet
+                score += 2; // Increase score on enemy destruction
+                break; // Exit the enemy loop, as the bullet can hit only one enemy in one frame
+            }
+        }
+
+        // Remove bullets that go off the canvas
+        if (bullet.x > boardWidth) {
+            bulletArray.splice(i, 1);
+            i--; // Adjust index after removing the bullet
+        }
     }
 }
 
